@@ -11,7 +11,7 @@ import com.google.firebase.auth.PhoneAuthProvider
 class FirebaseOTP(private var context: Context?, private var firebaseAuth: FirebaseAuth?, private val phoneNumber: String) : AppCompatActivity() {
     private var verificationCode: String? = null
     private var mCallbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks? = null
-    private var firebaseOTPCallbackInterface: FIrebaseOTPInterface? = null
+    private var firebaseOTPCallbackInterface: FirebaseOTPInterface? = null
     private val codeSentMessage = "Code Sent"
     private val successMessage = "OK"
     private val failedMessage = "ERROR"
@@ -20,7 +20,7 @@ class FirebaseOTP(private var context: Context?, private var firebaseAuth: Fireb
         /**
          * Instantiate firebaseOTPCallbackInterface
          */
-        firebaseOTPCallbackInterface = context as FIrebaseOTPInterface
+        firebaseOTPCallbackInterface = context as FirebaseOTPInterface
         handleFirebaseVerification()
 
         startPhoneNumberVerification(phoneNumber)
