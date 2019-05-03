@@ -1,34 +1,42 @@
 package com.rommansabbir.firebaseotp
 
-import android.content.Context
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
 
-class FirebaseOTP(private var context: Context?, private var firebaseAuth: FirebaseAuth?, private val phoneNumber: String) : AppCompatActivity() {
+object FirebaseOTP : AppCompatActivity() {
     private var verificationCode: String? = null
     private var mCallbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks? = null
-    private var firebaseOTPCallbackInterface: FirebaseOTPInterface? = null
-    private val codeSentMessage = "Code Sent"
-    private val successMessage = "OK"
-    private val failedMessage = "ERROR"
+    private lateinit var phoneNumber : String
+    private lateinit var firebaseAuth :FirebaseAuth
+    private lateinit var callback: FirebaseOTPCallback
 
-    init {
+    fun verify(firebaseAuth: FirebaseAuth?, phoneNumber: String, callback : FirebaseOTPCallback) {
         /**
-         * Instantiate firebaseOTPCallbackInterface
+         * This method handle firebase one time permission
+         * @param firebaseAuth, instantiated firebaseAuth
+         * @param phoneNumber, the number you want to send otp code
+         * @param callback, provide callback to get notified on otp steps
          */
-        firebaseOTPCallbackInterface = context as FirebaseOTPInterface
-        handleFirebaseVerification()
-
-        startPhoneNumberVerification(phoneNumber)
+        this.firebaseAuth = firebaseAuth!!
+        this.phoneNumber = phoneNumber
+        this.callback= callback
+        /**
+         * Handle otp stuff
+         */
+        handleVerification()
+        /**
+         * Start otp
+         */
+        startOTP(phoneNumber)
     }
     /**
-     * Start handling phone number verification
+     * This method handle verification using PhoneAuthProvider
+     * @param phoneNumber, the number used for otp
      */
-    private fun startPhoneNumberVerification(phoneNumber: String) {
+    private fun startOTP(phoneNumber: String) {
         PhoneAuthProvider.getInstance().verifyPhoneNumber(
                 phoneNumber,
                 60,
@@ -38,16 +46,15 @@ class FirebaseOTP(private var context: Context?, private var firebaseAuth: Fireb
     }
 
     /**
-     * Handle firebase verification
+     * This method handle otp code sending stuff
+     * Notify via callback to get notified
      */
-    private fun handleFirebaseVerification() {
+    private fun handleVerification() {
         mCallbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(phoneAuthCredential: PhoneAuthCredential) {
-                Log.d(TAG, "onVerificationCompleted: ")
             }
 
             override fun onVerificationFailed(e: FirebaseException) {
-                Log.d(TAG, "onVerificationFailed: ")
             }
 
             override fun onCodeSent(s: String?, forceResendingToken: PhoneAuthProvider.ForceResendingToken?) {
@@ -56,14 +63,15 @@ class FirebaseOTP(private var context: Context?, private var firebaseAuth: Fireb
                  * Assign the code to verificationCode and notify the callback interface
                  */
                 verificationCode = s
-                firebaseOTPCallbackInterface!!.onCodeSent(codeSentMessage)
+                callback.onCodeSent()
 
             }
         }
     }
 
     /**
-     * Verify the OTP code
+     * This method handle code verification stuff
+     * @param code, the code sent for otp
      */
     fun verifyOTP(code: String) {
         val credential = PhoneAuthProvider.getCredential(verificationCode!!, code)
@@ -72,31 +80,20 @@ class FirebaseOTP(private var context: Context?, private var firebaseAuth: Fireb
 
 
     /**
-     * Check the OTP credential
+     * This method handle otp credential checking
+     * @param credential, the PhoneAuthCredential to check with Firebase Auth
+     * Notify on task success or failure
      */
     private fun checkOTPCredential(credential: PhoneAuthCredential) {
-        firebaseAuth!!.signInWithCredential(credential)
+        firebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        firebaseOTPCallbackInterface!!.onVerificationSuccess(successMessage)
+                        callback.onVerificationSuccess()
 
                     } else {
-                        firebaseOTPCallbackInterface!!.onVerificationFailed(failedMessage)
+                        callback.onVerificationFailed()
                     }
                 }
     }
 
-    /**
-     * Destroy the callback after usages
-     */
-    fun selfDestroy() {
-        firebaseOTPCallbackInterface = null
-        mCallbacks = null
-        firebaseAuth = null
-        context = null
-    }
-
-    companion object {
-        private val TAG = "FirebaseOTP"
-    }
 }
