@@ -28,51 +28,35 @@ Step 2. Add the dependency
 
 | Releases        
 | ------------- |
+| v1.1          |
 | v1.0          |
-
 
 # Usages
 
 ```kotlin
-class MainActivity : AppCompatActivity(), FirebaseOTPInterface {
-    private var auth: FirebaseAuth? = null
-    private var firebaseOTP: FirebaseOTP? = null
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        
-        //Instantiate FirebaseAuth
-        auth = FirebaseAuth.getInstance()
+class MainActivity : AppCompatActivity() {
+.....................................................
+.....................................................
+FirebaseOTP.verify(mAuth, phoneNumber, object : FirebaseOTPCallback {
+			override fun onCodeSent() {
+			//TODO Implement your logic here
+			}
 
-        //Instantiate FirebaseOTPCallback
-        firebaseOTP = FirebaseOTP(this@MainActivity, auth, "PHONE_NUMBER_HERE")
+			override fun onVerificationFailed() {
+			//TODO Implement your logic here
+			}
 
-        //Call verifyOTP() to verify your code
-        firebaseOTP!!.verifyOTP("RECEIVED_CODE")
-        }
-    }
+			override fun onVerificationSuccess() {
+			//TODO Implement your logic here
+			}
 
+		})
+		
+....................................................
+....................................................
 
-    override fun onVerificationSuccess(msg: String) {
-        //TODO implement your login here
-    }
-
-    override fun onVerificationFailed(msg: String) {
-        //TODO implement your login here
-    }
-
-    override fun onCodeSent(msg: String) {
-        //TODO implement your logic here
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        /*
-        Call selfDestroy() after verification done
-         */
-        firebaseOTP!!.selfDestroy()
-    }
-}
+	//To verify the code
+	FirebaseOTP.verifyOTP(code)
 
 ```
 
